@@ -27,8 +27,8 @@ def text2image():
     data = '{"fn_index":0,"data":["A digital illustration of a medieval town, 4k, detailed, trending in artstation, fantasy",1,20,512,512,7.5,0,true,"PNDM"],"session_hash":"p151xhy7s0s"}'
     headers = {"Content-Type": "application/json"}
     ret = requests.post(url=url, headers=headers, data=data)
-    result = json.loads(ret.text)
-    # print(f"task id: {result.get('task_id')}")
+    result = json.loads(ret.text).get('data')
+    print(f"duration: {result.get('duration')}")
     # print(f"image: {result.get('image_urls')}")
 
 
