@@ -1,6 +1,6 @@
 from flask import Flask
 from traitlets import List
-# from main import inference, MP
+from main import inference, MP
 from flask import request, send_from_directory
 import os
 import io
@@ -22,7 +22,7 @@ def image_gen():
     # if not request.is_json or not validate_request(request.json):
         # return "", 400
     # run inference
-    # images:List[Image.Image] = inference(**request.json)
+    images:List[Image.Image] = inference(**request.json)
     rnd = (np.random.randn(32, 32, 3)*255).astype(np.uint8)
     images = [Image.fromarray(rnd) for _ in range(1)]
 
