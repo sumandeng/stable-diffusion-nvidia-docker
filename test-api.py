@@ -17,6 +17,7 @@ else:
 img_num=1
 
 def text2image():
+    # url = "http://106.55.247.196:8501/api/predict/"
     url = "http://127.0.0.1:8501/api/predict/"
     # data = {
     #     "prompt": "A digital illustration of a steampunk library with clockwork machines, 4k, detailed, trending in artstation, fantasy vivid colors",
@@ -26,9 +27,10 @@ def text2image():
     data = '{"fn_index":0,"data":["A digital illustration of a medieval town, 4k, detailed, trending in artstation, fantasy",' + str(img_num) + ',20,512,512,7.5,0,true,"PNDM"],"session_hash":"p151xhy7s0s"}'
     headers = {"Content-Type": "application/json"}
     ret = requests.post(url=url, headers=headers, data=data)
-    result = json.loads(ret.text).get('data')
-    print(f"duration: {result.get('duration')}")
+    result = json.loads(ret.text)
+    # print(f"duration: {result.get('duration')}")
     # print(f"image: {result.get('image_urls')}")
+    return 'duration' in result
 
 
 
@@ -44,11 +46,13 @@ class TestThread(threading.Thread):
     def run(self):
         print("开始线程: " + self.name)
         start_time = time.time()
-        text2image()
-        end_time = time.time()
-        duration = end_time - start_time
-        timing.append(duration)
-        print("[v]线程结束: " + self.name + ", 耗时: %.3f秒"%duration)
+        if text2image():
+            end_time = time.time()
+            duration = end_time - start_time
+            timing.append(duration)
+            print("[v]线程结束: " + self.name + ", 耗时: %.3f秒"%duration)
+        else:
+            print("[x]线程没有正确返回: " + self.name)
         # except Exception as err:
         #     print(f"[x]线程异常: {self.name}, {err}")
 
@@ -59,7 +63,7 @@ header = ['QPS', '请求成功', '最短用时', '最长用时', '平均用时',
 writer.writerow(header)
 
 
-for counter in range(5):
+for counter in range(1, 5):
     print(f">>>>>>>>>>>>>开始测试[QPS={counter}]>>>>>>>>>>>>")
     workerThreads = []
     for i in range(counter):
