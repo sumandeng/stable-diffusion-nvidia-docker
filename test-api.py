@@ -6,6 +6,7 @@ import threading
 import sys, time
 from numpy import *
 import requests, json
+import csv
 
 
 
@@ -13,9 +14,7 @@ if len(sys.argv) > 1 :
     counter = int(sys.argv[1])
 else:
     counter = 5
-
-# accessToken = getAccessToken(accessKey, secretKey)
-
+img_num=1
 
 def text2image():
     url = "http://127.0.0.1:8501/api/predict/"
@@ -24,7 +23,7 @@ def text2image():
     #     "steps": 20,
     #     "num_images": 1
     # }
-    data = '{"fn_index":0,"data":["A digital illustration of a medieval town, 4k, detailed, trending in artstation, fantasy",1,20,512,512,7.5,0,true,"PNDM"],"session_hash":"p151xhy7s0s"}'
+    data = '{"fn_index":0,"data":["A digital illustration of a medieval town, 4k, detailed, trending in artstation, fantasy",' + str(img_num) + ',20,512,512,7.5,0,true,"PNDM"],"session_hash":"p151xhy7s0s"}'
     headers = {"Content-Type": "application/json"}
     ret = requests.post(url=url, headers=headers, data=data)
     result = json.loads(ret.text).get('data')
@@ -53,24 +52,58 @@ class TestThread(threading.Thread):
         # except Exception as err:
         #     print(f"[x]线程异常: {self.name}, {err}")
 
-print(">>>>>>>>>>>>>开始测试>>>>>>>>>>>>")
-workerThreads = []
-for i in range(counter):
-    thread = TestThread(i, f"Thread-{i}")
-    workerThreads.append(thread)
+time_str = time.strftime("%Y%m%d%H%M%S", time.localtime())
+f = open(f"test-result-{img_num}-{time_str}.csv", "w", encoding="UTF8")
+writer = csv.writer(f)
+header = ['QPS', '请求成功', '最短用时', '最长用时', '平均用时', '中位用时']
+writer.writerow(header)
 
-for thread in workerThreads:
-    thread.start()
 
-for thread in workerThreads:
-    thread.join()
+for counter in range(5):
+    print(f">>>>>>>>>>>>>开始测试[QPS={counter}]>>>>>>>>>>>>")
+    workerThreads = []
+    for i in range(counter):
+        thread = TestThread(i, f"Thread-{i}")
+        workerThreads.append(thread)
 
-print("<<<<<<<<<<<<测试结束<<<<<<<<<<<<")
-print("*********测试结果**********")
-print("线程数: %d"%len(workerThreads))
-print("成功返回: %d"%len(timing))
-print("最长耗时: %.3f秒"%max(timing))
-print("最短耗时: %.3f秒"%min(timing))
-print("平均耗时: %.3f秒"%mean(timing))
-print("中位数: %.3f秒"%median(timing))
+    for thread in workerThreads:
+        thread.start()
+
+    for thread in workerThreads:
+        thread.join()
+
+    print(f"<<<<<<<<<<<<测试结束[QPS={counter}]<<<<<<<<<<<<")
+    print("*********测试结果**********")    
+    print("线程数: %d"%len(workerThreads))
+    print("成功返回: %d"%len(timing))
+    print("最短耗时: %.3f秒"%min(timing))
+    print("最长耗时: %.3f秒"%max(timing))
+    print("平均耗时: %.3f秒"%mean(timing))
+    print("中位数: %.3f秒"%median(timing))
+    row = [counter, len(timing), min(timing), max(timing), mean(timing), median(timing)]
+    writer.writerow(row)
+    timing.clear()
+
+f.close()
+
+# print(">>>>>>>>>>>>>开始测试>>>>>>>>>>>>")
+# workerThreads = []
+# for i in range(counter):
+#     thread = TestThread(i, f"Thread-{i}")
+#     workerThreads.append(thread)
+
+# for thread in workerThreads:
+#     thread.start()
+
+# for thread in workerThreads:
+#     thread.join()
+
+# print("<<<<<<<<<<<<测试结束<<<<<<<<<<<<")
+# print("*********测试结果**********")
+# print("线程数: %d"%len(workerThreads))
+# print("成功返回: %d"%len(timing))
+# print("最长耗时: %.3f秒"%max(timing))
+# print("最短耗时: %.3f秒"%min(timing))
+# print("平均耗时: %.3f秒"%mean(timing))
+# print("中位数: %.3f秒"%median(timing))
 
